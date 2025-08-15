@@ -12,3 +12,17 @@
 クソリプのデータを静的JSONで無駄に配信します。
 
 ### エンドポイント
+GET /api/replies.json
+
+### レスポンス例
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "type": "謎絡み宣伝系",
+      "content": "このサプリ初回限定価格で提供中！詳しくはURLで！",
+      "severity": "★★★★★"
+    }
+  ]
+}
