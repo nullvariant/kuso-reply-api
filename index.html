@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>クソリプ判定クイズ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f0f9ff; /* sky-50 */
+        }
+        .quiz-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+        .tweet-card {
+            background-color: white;
+            border: 1px solid #e2e8f0; /* gray-200 */
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .option-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border: 2px solid transparent;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            background-color: white;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+        .option-btn:hover {
+            border-color: #3b82f6; /* blue-500 */
+            background-color: #eff6ff; /* blue-50 */
+        }
+        .option-btn.selected {
+            border-color: #3b82f6; /* blue-500 */
+            background-color: #dbeafe; /* blue-100 */
+            font-weight: 700;
+        }
+        .result-card {
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div id="quiz-app" class="quiz-container">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-black text-blue-600">クソリプ判定クイズ</h1>
+            <p class="text-gray-500 mt-2">あなたのSNSサバイバル能力を試そう！</p>
+        </header>
+
+        <div id="quiz-area">
+            <div class="tweet-card">
+                <p class="font-bold mb-2">元の投稿</p>
+                <p id="tweet-text" class="text-gray-700 leading-relaxed"></p>
+            </div>
+
+            <div class="mb-6">
+                <p class="font-bold text-lg text-center mb-4">🤔 この中で「クソリプ」はどれ？</p>
+                <div id="options-container"></div>
+            </div>
+
+            <div id="result-area" class="hidden">
+                 <div id="result-card" class="result-card">
+                    <h3 id="result-title" class="text-2xl font-bold mb-2"></h3>
+                    <p id="result-explanation" class="text-gray-700"></p>
+                </div>
+            </div>
+
+            <div class="mt-6 text-center">
+                <button id="next-btn" class="hidden bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg transition-transform transform hover:scale-105">次の問題へ</button>
+            </div>
+        </div>
+        
+        <div id="final-score-area" class="hidden text-center bg-white p-8 rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold mb-4">クイズ終了！</h2>
+            <p class="text-xl">あなたのスコアは...</p>
+            <p class="text-6xl font-black text-blue-600 my-4"><span id="final-score"></span> 点</p>
+            <p class="text-gray-600 mb-6">お見事！これであなたもSNSマスター！</p>
+            <button id="restart-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg transition-transform transform hover:scale-105">もう一度挑戦する</button>
+        </div>
+
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                tweet: "奮発して新しいカメラ買った！これで週末から写真撮るの楽しみ！📸",
+                options: [
+                    "おぉ、いいですね！楽しんでください！",
+                    "へぇ、そのモデルですか。自分はPro版持ってますけど、正直画質は段違いですよ。無理してでもそっちにすればよかったのに。",
+                    "素敵なカメラ！どんな写真が撮れるか楽しみにしてますね！"
+                ],
+                correctAnswerIndex: 1,
+                explanation: "【マウンティング系】相手の喜びを素直に祝福せず、自分の持つ上位モデルの話をすることで優位に立とうとしています。典型的なクソリプです。"
+            },
+            {
+                tweet: "今日はなんだか気分が落ち込むな…。静かに本でも読んで過ごしたい気分。",
+                options: [
+                    "そういう日もありますよね。ゆっくり休んでください。",
+                    "気分が落ち込むなら運動した方がいいですよ！読書なんてしてたら余計滅入るだけ。さあ、ランニング！",
+                    "無理しないでね。本の世界でリフレッシュできますように。"
+                ],
+                correctAnswerIndex: 1,
+                explanation: "【無自覚系】悪気はないかもしれませんが、相手が「静かに過ごしたい」と言っているのに、求められてもいない正論（？）のアドバイスを押し付けています。"
+            },
+            {
+                tweet: "このカフェのパンケーキ、人生で一番美味しかった！🥞",
+                options: [
+                    "うわー、美味しそう！今度行ってみます！",
+                    "すごい！どこのカフェか教えてほしいです！",
+                    "横から失礼します。「人生で一番」は大げさでは？世の中にはもっと美味しいパンケーキがたくさんありますよ。"
+                ],
+                correctAnswerIndex: 2,
+                explanation: "【謎の上から目線系】個人の感想に対して、わざわざ水を差し、自分の価値観を押し付けています。相手を不快にさせるだけの無意味な返信です。"
+            },
+            {
+                tweet: "仕事でやらかした…。しばらく立ち直れそうにない。",
+                options: [
+                    "誰にでも失敗はあるよ。元気出して！",
+                    "大変でしたね…。ゆっくり休んでください。",
+                    "俺なんてこの前、取引先との大事な契約を忘れてて部長にめちゃくちゃ怒られましたよw それに比べたら大したことないですよ！"
+                ],
+                correctAnswerIndex: 2,
+                explanation: "【自分語り強奪系】相手を励ますフリをしながら、巧みに自分の話にすり替えています。「俺の不幸自慢」で相手の悩みを矮小化する悪質な手口です。"
+            },
+            {
+                tweet: "最近、肩こりが酷すぎてつらい…。",
+                options: [
+                    "わかります！私もです。いいストレッチありますか？",
+                    "突然すみません！〇〇というサプリがオススメです！今なら初回限定価格で…詳しくはこのURLから！",
+                    "それは大変ですね。お大事にしてください。"
+                ],
+                correctAnswerIndex: 1,
+                explanation: "【謎絡み宣伝系】相手の悩みや投稿内容をフックに、全く関係のない自分の宣伝を始めるタイプ。会話のキャッチボールを完全に無視しています。"
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedOptionIndex = null;
+
+        const quizApp = document.getElementById('quiz-app');
+        const quizArea = document.getElementById('quiz-area');
+        const tweetText = document.getElementById('tweet-text');
+        const optionsContainer = document.getElementById('options-container');
+        const resultArea = document.getElementById('result-area');
+        const resultCard = document.getElementById('result-card');
+        const resultTitle = document.getElementById('result-title');
+        const resultExplanation = document.getElementById('result-explanation');
+        const nextBtn = document.getElementById('next-btn');
+        const finalScoreArea = document.getElementById('final-score-area');
+        const finalScoreEl = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+
+        function loadQuestion() {
+            selectedOptionIndex = null;
+            resultArea.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+
+            const currentQuestion = quizData[currentQuestionIndex];
+            tweetText.textContent = currentQuestion.tweet;
+            optionsContainer.innerHTML = '';
+
+            currentQuestion.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.textContent = option;
+                button.dataset.index = index;
+                button.addEventListener('click', () => selectOption(index, button));
+                optionsContainer.appendChild(button);
+            });
+        }
+        
+        function selectOption(index, button) {
+            if (resultArea.classList.contains('hidden')) {
+                const allOptions = optionsContainer.querySelectorAll('.option-btn');
+                allOptions.forEach(btn => btn.classList.remove('selected'));
+                button.classList.add('selected');
+                selectedOptionIndex = index;
+                checkAnswer();
+            }
+        }
+
+        function checkAnswer() {
+            const currentQuestion = quizData[currentQuestionIndex];
+            const isCorrect = selectedOptionIndex === currentQuestion.correctAnswerIndex;
+
+            resultArea.classList.remove('hidden');
+            
+            if (isCorrect) {
+                score++;
+                resultTitle.textContent = '🎉 正解！';
+                resultTitle.className = 'text-2xl font-bold mb-2 text-green-600';
+                resultCard.className = 'result-card bg-green-100 border-2 border-green-400';
+            } else {
+                resultTitle.textContent = '😥 残念！';
+                resultTitle.className = 'text-2xl font-bold mb-2 text-red-600';
+                resultCard.className = 'result-card bg-red-100 border-2 border-red-400';
+            }
+            
+            resultExplanation.textContent = currentQuestion.explanation;
+            nextBtn.classList.remove('hidden');
+
+            const allOptions = optionsContainer.querySelectorAll('.option-btn');
+            allOptions.forEach((btn, index) => {
+                btn.disabled = true;
+                if (index === currentQuestion.correctAnswerIndex) {
+                    btn.classList.add('bg-green-200', 'border-green-500');
+                } else if (index === selectedOptionIndex) {
+                    btn.classList.add('bg-red-200', 'border-red-500');
+                }
+            });
+        }
+
+        function showNextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                loadQuestion();
+            } else {
+                showFinalScore();
+            }
+        }
+
+        function showFinalScore() {
+            quizArea.classList.add('hidden');
+            finalScoreArea.classList.remove('hidden');
+            finalScoreEl.textContent = (score / quizData.length) * 100;
+        }
+        
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            finalScoreArea.classList.add('hidden');
+            quizArea.classList.remove('hidden');
+            loadQuestion();
+        }
+
+        nextBtn.addEventListener('click', showNextQuestion);
+        restartBtn.addEventListener('click', restartQuiz);
+
+        loadQuestion();
+    </script>
+</body>
+</html>
