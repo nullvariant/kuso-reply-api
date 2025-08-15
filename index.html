@@ -94,7 +94,7 @@
             <h2 class="text-3xl font-bold mb-4">クイズ終了！</h2>
             <p class="text-xl">あなたのスコアは...</p>
             <p class="text-6xl font-black text-blue-600 my-4"><span id="final-score"></span> 点</p>
-            <p class="text-gray-600 mb-6">お見事！これであなたもSNSマスター！</p>
+            <p id="final-message" class="text-gray-600 mb-6">お見事！これであなたもSNSマスター！</p>
             <button id="restart-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg transition-transform transform hover:scale-105">もう一度挑戦する</button>
         </div>
 
@@ -169,6 +169,7 @@
         const nextBtn = document.getElementById('next-btn');
         const finalScoreArea = document.getElementById('final-score-area');
         const finalScoreEl = document.getElementById('final-score');
+        const finalMessage = document.getElementById('final-message');
         const restartBtn = document.getElementById('restart-btn');
 
         function loadQuestion() {
@@ -243,7 +244,18 @@
         function showFinalScore() {
             quizArea.classList.add('hidden');
             finalScoreArea.classList.remove('hidden');
-            finalScoreEl.textContent = (score / quizData.length) * 100;
+            const scorePercent = Math.round((score / quizData.length) * 100);
+            finalScoreEl.textContent = scorePercent;
+            // ✨ 判定結果に合わせて適当に励ます係
+            let message;
+            if (scorePercent >= 80) {
+                message = 'お見事！これであなたもSNSマスター！';
+            } else if (scorePercent >= 40) {
+                message = 'まあまあかな。クソリプの沼はまだ深いぞ。';
+            } else {
+                message = 'まだまだ修行が必要です。クソリプ道は険しい…';
+            }
+            finalMessage.textContent = message;
         }
         
         function restartQuiz() {
